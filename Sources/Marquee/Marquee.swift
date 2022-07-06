@@ -29,8 +29,14 @@ public struct Marquee<Content> : View where Content : View {
     @State private var state: MarqueeState = .idle
     @State private var contentWidth: CGFloat = 0
     @State private var isAppear = false
+    @State private var itemWidth = 0
     
     public init(@ViewBuilder content: @escaping () -> Content) {
+        self.content = content
+    }
+    
+    public init(itemWidth: Int, @ViewBuilder content: @escaping () -> Content) {
+        self.itemWidth = itemWidth
         self.content = content
     }
     
@@ -48,7 +54,8 @@ public struct Marquee<Content> : View where Content : View {
                 }
             }
             .onPreferenceChange(WidthKey.self, perform: { value in
-                self.contentWidth = value
+                self.contentWidth = self.itemWidth == 0 ?  value : CGFloat(self.itemWidth) 
+                let _ = print("Setting Content Width to \(value)")
                 resetAnimation(duration: duration, autoreverses: autoreverses, proxy: proxy)
             })
             .onAppear {
@@ -82,13 +89,16 @@ public struct Marquee<Content> : View where Content : View {
                 return 0
             }
         case .ready:
+            let _ = print("Returning offsetX from reday state")
             return (direction == .right2left) ? proxy.size.width : -contentWidth
         case .animating:
+            let _ = print("Returning offsetX from animating state")
             return (direction == .right2left) ? -contentWidth : proxy.size.width
         }
     }
     
     private func resetAnimation(duration: Double, autoreverses: Bool, proxy: GeometryProxy) {
+        let _ = print("Resetting Animation")
         if duration == 0 || duration == Double.infinity {
             stopAnimation()
         } else {
@@ -98,6 +108,9 @@ public struct Marquee<Content> : View where Content : View {
     
     private func startAnimation(duration: Double, autoreverses: Bool, proxy: GeometryProxy) {
         let isNotFit = contentWidth < proxy.size.width
+        
+        let _ = print("Content W : \(contentWidth))")
+        
         if stopWhenNotFit && isNotFit {
             stopAnimation()
             return
